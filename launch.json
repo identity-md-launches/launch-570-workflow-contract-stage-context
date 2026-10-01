@@ -1,0 +1,40 @@
+{
+  "kind": "evm_project",
+  "token": {
+    "contract": "LaunchToken",
+    "name": "Pepe Values Pepe",
+    "symbol": "PVP",
+    "decimals": 18
+  },
+  "contracts": [
+    {
+      "contract": "WorkerSubsidy",
+      "constructorArgs": ["$owner"]
+    },
+    {
+      "contract": "KingOfThePad",
+      "constructorArgs": ["$contract:WorkerSubsidy"]
+    },
+    {
+      "contract": "PvPadHook",
+      "constructorArgs": ["0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"]
+    },
+    {
+      "contract": "PvPadFactory",
+      "constructorArgs": [
+        "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
+        "$contract:WorkerSubsidy",
+        "$contract:KingOfThePad",
+        "$contract:PvPadHook",
+        "$owner"
+      ]
+    }
+  ],
+  "pool": {
+    "pairedCurrency": "0x0000000000000000000000000000000000000000",
+    "fee": 3000,
+    "tickSpacing": 60,
+    "initialPrice": "79228162514264337593543950336"
+  },
+  "notes": "PvPad is a permissionless multi-token launchpad targeting Sepolia. Both PoolManager constructor arguments use the address specified by the approved workflow. The four application contracts are ordered by constructor dependencies and need no post-deployment initialization calls. PvPadFactory constructs its FeeEscrow and genesis launch #0 with zero creation fee, including a PvPadToken and BondingCurve, and binds and initializes the genesis pool during construction. Subsequent launches create their own tokens and curves through the same factory; these children are not separate manifest deployments. LaunchToken is the protocol launch artifact and is distinct from the factory-created genesis token, although both have the name Pepe Values Pepe and symbol PVP; integrations must distinguish their addresses. This manifest's pool describes only the protocol LaunchToken pool, with native ETH, the canonical fee input and decimal sqrtPriceX96. Its initialization-only PoolInitializationGuard, LP and MerkleDistributor are supplied by the protocol factory. Application pools instead use fee tier 0, tick spacing 60, the factory-computed canonical price and the shared PvPadHook. Application trades charge 1%, split equally between king and creator; graduation occurs at 4.2 ETH of curve reserves into factory-held locked liquidity. The 0.0005 ETH launch fee and entire king bids fund WorkerSubsidy. The initial king claim price is 0.01 ETH with a 10% bump. The policy-resolved $owner supplies both WorkerSubsidy.initialUpdater and PvPadFactory.genesisCreator. Policy must authorize both distinct roles: the updater selects worker Merkle allocations off-chain, while genesisCreator permanently receives the genesis creator fee share. Solidity does not call the worker API. PvPadHook requires a CREATE2 salt mined from the actual deployer, accepted creation bytecode and PoolManager argument so that its address masked with 0x3fff equals 0x08cc. It does not enable beforeInitialize; its beforeAddLiquidity gate, realignPool, bounded factory salt retries and threshold sell block remain in the accepted source. Admission must verify the complete constructor sequence on a Sepolia fork against the live PoolManager without bypassing hook permission checks or pool initialization. Independent review remains required. Source publication, signed artifact linkage, policy authorization, admission, deployment addresses, the on-chain second-launch proof and frontend hosting are subsequent service responsibilities; this manifest does not attest their completion."
+}
